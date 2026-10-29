@@ -1,0 +1,11 @@
+.env
+.devcontainer/.env
+bin/
+obj/
+TestResults/
+*.user
+.vs/
+node_modules/
+dist/
+.angular/
+coverage/

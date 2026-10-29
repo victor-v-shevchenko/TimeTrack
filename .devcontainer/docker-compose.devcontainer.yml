@@ -1,0 +1,25 @@
+services:
+  workspace:
+    image: mcr.microsoft.com/devcontainers/dotnet:10.0
+    volumes:
+      - ..:/workspace:cached
+      - node_modules:/workspace/frontend/node_modules
+    command: sleep infinity
+    environment:
+      ASPNETCORE_URLS: http://0.0.0.0:5000
+    secrets:
+      - source: db_connection
+        target: ConnectionStrings__Default
+    depends_on: [db]
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?copy .env.example to .env}
+      POSTGRES_USER: ${POSTGRES_USER:?copy .env.example to .env}
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password]
+    volumes: [pgdata-dev:/var/lib/postgresql/data]
+secrets:
+  db_password:   { environment: POSTGRES_PASSWORD }
+  db_connection: { environment: DB_CONNECTION_STRING }
+volumes: { pgdata-dev: {}, node_modules: {} }
