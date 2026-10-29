@@ -38,11 +38,11 @@ Steps 1–7.
 | **Connection string not logged** | `docker compose logs api` and test output contain no `Password=` |
 
 ## Acceptance criteria
-- [ ] Every review finding has a decision. Those decisions are summarized in the commit body
+- [x] Every review finding has a decision. Those decisions are summarized in the commit body
       (counts per category, plus one line each for the fixes).
-- [ ] Every fixed bug has a regression test.
-- [ ] `docs/ai-log.md` has at least the real bugs met so far, each with how it was found and a commit link.
-- [ ] `dotnet test backend` and `npm test` are green; `docker compose up --build` still works.
+- [x] Every fixed bug has a regression test.
+- [x] `docs/ai-log.md` has at least the real bugs met so far, each with how it was found and a commit link.
+- [x] `dotnet test backend` and `npm test` are green; `docker compose up --build` still works.
 
 ## Commit
 `Step 8: AI review fixes and AI log` (plus any `fix: …` commits before it)

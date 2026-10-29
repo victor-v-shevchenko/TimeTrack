@@ -19,3 +19,50 @@ Bugs and wrong output produced by AI tools, how they were found, and how they we
 - **How it was found:** manual check — querying for entries with `stopped_at::date <> started_at::date`
   after the first run returned only Alice's running entry.
 - **Fix:** select the 10 days in a subquery and number them in the outer query (same commit).
+
+### Exception handler depended on the Accept header
+- **Step / commit:** step 4, `d4eac25`
+- **Tool / model:** Claude Code (writing model not recorded)
+- **What the AI produced:** `AppExceptionHandler` returned the result of `IProblemDetailsService.TryWriteAsync`,
+  which is `false` when `Accept` excludes JSON. The exception then escaped as a bodyless 500 instead of the 404/409/422.
+- **How it was found:** /code-review, Sonnet 5.5; reproduced with a failing test (`Accept: text/html`).
+- **Fix:** write `application/problem+json` directly, `ba8456b`.
+
+### Timer start validated the body before the employee existed
+- **Step / commit:** step 3, `667d316`
+- **Tool / model:** Claude Code (writing model not recorded)
+- **What the AI produced:** `StartAsync` checked the description first, so `POST /employees/9999/timer/start` with a
+  blank description returned 422, while `Stop` correctly returned 404.
+- **How it was found:** /code-review, Sonnet 5.5; failing test first.
+- **Fix:** existence check moved first, `ba8456b`.
+
+### Employee row ignored the DestroyRef rule
+- **Step / commit:** step 5, `e07944a`
+- **Tool / model:** Claude Code (writing model not recorded)
+- **What the AI produced:** `request.subscribe` in `EmployeeRow.run()` had no `takeUntilDestroyed`, although
+  CLAUDE.md requires it and the other components do it. A late response updated signals and emitted on a destroyed row.
+- **How it was found:** /code-review, Sonnet 5.5; failing test (destroy while request in flight).
+- **Fix:** `takeUntilDestroyed(this.destroyRef)`, `5effdad`.
+
+### Minor: UTC conversion outside `core/time.ts`, stale list handling
+- **Step / commit:** step 5, `e07944a`
+- **Tool / model:** Claude Code (writing model not recorded)
+- **What the AI produced:** `toISOString()` called in `ApiService` (CLAUDE.md: only in `time.ts`); a new employee
+  appended to the end of the list instead of reloading in server order; overlapping list loads could apply a stale response.
+- **How it was found:** /code-review, Sonnet 5.5. Low impact: the output was correct for the common path.
+- **Fix:** `toUtcIso` in `time.ts`, reload after add, latest-wins load, `5effdad`.
+
+### Minor: step 2 spec/tooling assumptions were wrong
+- **Step / commit:** step 2, `c8eb567`
+- **Tool / model:** Claude Code (plan and specs)
+- **What the AI produced:** the spec listed a KeyPerFile package (it ships with the shared framework), and omitted
+  `global.json` for the Microsoft.Testing.Platform runner and the EF Core Relational pin that avoids a version conflict.
+- **How it was found:** build and test failures while implementing.
+- **Fix:** spec corrected in the same commit.
+
+### Minor: dev container created `frontend/` and `node_modules` root-owned
+- **Step / commit:** step 5, `e07944a`
+- **Tool / model:** Claude Code
+- **What the AI produced:** a `postCreateCommand` that did not chown the frontend directory and the `node_modules` volume.
+- **How it was found:** `npm install` failed with permission errors.
+- **Fix:** chown added to `postCreateCommand`, same commit.
