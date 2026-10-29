@@ -31,6 +31,12 @@ All commands run inside the Dev Container (`/workspace`).
 
 Full stack from the host: `docker compose up --build` → http://localhost:8080.
 
+Browser checks (Playwright MCP, configured in `.mcp.json`; Chrome/Chromium are installed by
+`postCreateCommand`, `--no-sandbox` is needed in the container): start the stack, then open
+http://host.docker.internal:8080 from the Dev Container — `localhost` is the container itself,
+the Docker daemon is on the host. If 8080 is busy, remap `web` with a temporary override file
+outside the repo. Use fictional data only and `docker compose down -v` afterwards.
+
 ## Rules
 
 **Secrets**
