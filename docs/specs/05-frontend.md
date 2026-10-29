@@ -107,7 +107,7 @@ returns `errors` values joined, otherwise `detail ?? title`. For status 0 return
 - [ ] Manual (API running in the container): add an employee, start, see the counter tick,
       stop, open the report with today in range, see the entry and total. A range in the
       future shows the empty state.
-- [ ] Opening and closing the Employees page repeatedly doesn't leave intervals running (DevTools check).
+- [x] Opening and closing the Employees page repeatedly doesn't leave intervals running (DevTools check).
 - [x] No `new Date('YYYY-MM-DD')` anywhere (`git grep`).
 
 ## Commit
