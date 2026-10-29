@@ -76,3 +76,12 @@ Bugs and wrong output produced by AI tools, how they were found, and how they we
 - **What the AI produced:** a `postCreateCommand` that did not chown the frontend directory and the `node_modules` volume.
 - **How it was found:** `npm install` failed with permission errors.
 - **Fix:** chown added to `postCreateCommand`, same commit.
+
+### Minor: Swagger UI not available in the dev container
+- **Step / commit:** step 4 (Swagger criterion) and step 2 (dev container), fixed in step 9
+- **Tool / model:** Claude Code
+- **What the AI produced:** a dev container without `ASPNETCORE_ENVIRONMENT`, and no `launchSettings.json`, so
+  `dotnet watch` ran as Production and `/swagger` returned 404. The README promised it at :5000/swagger. The step 4
+  criterion was only checked by a test that sets the environment explicitly.
+- **How it was found:** clean-clone check in a fresh Dev Container.
+- **Fix:** `containerEnv` `ASPNETCORE_ENVIRONMENT=Development` in `devcontainer.json`.

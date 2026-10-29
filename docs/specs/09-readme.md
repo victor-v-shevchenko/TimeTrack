@@ -61,8 +61,8 @@ Do this in a fresh directory on the Windows host, not in the working copy:
 6. Fix any README gap you find in the same commit.
 
 ## Acceptance criteria
-- [ ] All clean-clone steps succeed without steps that aren't documented. (Verified from a GitHub clone in the Linux dev container with a remapped port; still to do on the Windows host: PowerShell commands and Reopen in Container.)
-- [ ] Every command in the README was actually run. (Run: clone, cp, compose up/down, seed, report curl, dotnet test, npm test. Not run: dotnet watch, npm start, Swagger UI, PowerShell variants.)
+- [x] All clean-clone steps succeed without steps that aren't documented. (Verified from a GitHub clone in the Linux dev container with a remapped port, and on the Windows host in PowerShell: clone, `Copy-Item`, `compose up --build`, PowerShell seed, report, start/stop/restart, empty next-week report, `down` → `up` keeps data and the running timer. Reopen in Container checked by the user: `dotnet test backend` 59 passed, `npm test` 33 passed, `npm start` OK on :4200. Swagger returned 404 until `containerEnv` `ASPNETCORE_ENVIRONMENT=Development` was added to `devcontainer.json` (no `launchSettings.json`, so `dotnet watch` ran as Production); after a rebuild Swagger loads at :5000/swagger.)
+- [x] Every command in the README was actually run. (Run: clone, `cp` and `Copy-Item`, compose up/down, seed in bash and PowerShell, dotnet test, npm test; the report `curl` in bash in the Linux container and via PowerShell on the host; dotnet watch, npm start and Swagger UI in the rebuilt Dev Container.)
 - [x] The README links to PLAN.md, `docs/specs/`, `docs/ai-log.md` and `seed/README.md`, and all of them resolve.
 - [x] No placeholder text is left (`TODO`, `<repo>` replaced by the real URL if it is known).
 

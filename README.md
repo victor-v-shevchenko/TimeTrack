@@ -142,6 +142,7 @@ is not in the saved history, so it is not included.
 | Seed script numbered weekdays before `LIMIT`, so one entry was never inserted | manual check | Number the days in an outer query |
 | Wrong step 2 spec/tooling assumptions (KeyPerFile package, `global.json`) | build and test failures | Spec corrected |
 | Dev container created `frontend/` and `node_modules` root-owned | `npm install` failure | `chown` in `postCreateCommand` |
+| Swagger UI returned 404 in the dev container (no Development environment) | clean-clone check | `ASPNETCORE_ENVIRONMENT` in `containerEnv` |
 
 Full log: [docs/ai-log.md](docs/ai-log.md). Seed data: [seed/README.md](seed/README.md).
 
