@@ -86,14 +86,14 @@ Also check that the file can be read by a non-root user (`stat -c '%a %U' /run/s
 Step 6 runs the API as the non-root `app` user.
 
 ## Acceptance criteria
-- [ ] `git status` on a clean clone shows no `.env`; `git check-ignore .env .devcontainer/.env` matches both.
+- [x] `git status` on a clean clone shows no `.env`; `git check-ignore .env .devcontainer/.env` matches both.
 - [ ] If `.devcontainer/.env` is missing, "Reopen in Container" fails with the `copy .env.example to .env` message.
-- [ ] Inside the container: `dotnet --version` reports 10.x; `node --version` reports LTS; `docker ps` works.
+- [x] Inside the container: `dotnet --version` reports 10.x; `node --version` reports LTS; `docker ps` works.
 - [ ] `cat /run/secrets/ConnectionStrings__Default` shows `Host=db;Database=timetrack;...` with the real password.
-- [ ] `env | grep -i password` inside the workspace prints nothing.
-- [ ] `(echo > /dev/tcp/db/5432) && echo ok` prints `ok`.
+- [x] `env | grep -i password` inside the workspace prints nothing.
+- [x] `(echo > /dev/tcp/db/5432) && echo ok` prints `ok`.
 - [ ] From the host, `docker compose config` resolves (with root `.env`) and fails clearly without it.
-- [ ] `git grep -nIi 'password=' -- ':!*.example' ':!docs/**' ':!PLAN.md'` returns nothing.
+- [x] `git grep -nIi 'password=' -- ':!*.example' ':!docs/**' ':!PLAN.md'` returns nothing.
 
 ## Commit
 `Step 1: Dev container, compose skeleton and secrets`
