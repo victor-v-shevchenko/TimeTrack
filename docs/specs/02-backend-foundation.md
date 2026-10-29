@@ -9,6 +9,7 @@ Step 1.
 
 ## Files
 
+    global.json                                           # selects the Microsoft.Testing.Platform runner for `dotnet test`
     backend/TimeTrack.slnx
     backend/TimeTrack.Api/TimeTrack.Api.csproj
     backend/TimeTrack.Api/Program.cs
@@ -27,13 +28,16 @@ Step 1.
 
 ## Packages
 - Api: `Npgsql.EntityFrameworkCore.PostgreSQL`, `EFCore.NamingConventions`,
-  `Microsoft.EntityFrameworkCore.Design` (PrivateAssets=all),
-  `Microsoft.Extensions.Configuration.KeyPerFile`.
+  `Microsoft.EntityFrameworkCore.Design` (PrivateAssets=all), and `Microsoft.EntityFrameworkCore.Relational`
+  pinned to the same version as Design (otherwise the Tests project resolves an older EF Core and fails with CS1705).
+  `AddKeyPerFile` needs no package: it ships with the ASP.NET Core shared framework (NU1510 if referenced).
 - Tests: `xunit.v3`, `xunit.runner.visualstudio`, `Microsoft.NET.Test.Sdk`,
   `Microsoft.AspNetCore.Mvc.Testing`, `Microsoft.Extensions.TimeProvider.Testing`.
 
 Use the latest stable versions compatible with .NET 10. Enable `<Nullable>` and
-`<TreatWarningsAsErrors>` in both projects.
+`<TreatWarningsAsErrors>` in both projects. On .NET 10, `dotnet test` only works with xunit.v3 after
+`global.json` contains `{"test":{"runner":"Microsoft.Testing.Platform"}}`. Add `<Using Include="Xunit" />`
+to the Tests project, and pass `TestContext.Current.CancellationToken` to async calls (analyzer xUnit1051 is an error).
 
 ## Domain
 
@@ -151,11 +155,11 @@ Test classes use `IClassFixture<ApiFactory>`. Tests that need an isolated databa
 - Don't put the connection string in `appsettings*.json`, even for Development.
 
 ## Acceptance criteria
-- [ ] `dotnet build backend` has no warnings.
-- [ ] `dotnet run --project backend/TimeTrack.Api` creates the tables in `timetrack` (snake_case, partial index present).
+- [x] `dotnet build backend` has no warnings.
+- [x] `dotnet run --project backend/TimeTrack.Api` creates the tables in `timetrack` (snake_case, partial index present).
 - [ ] `ConnectionStrings__Default= dotnet run ...` with the secret temporarily hidden shows the clear startup error. Mention this manual check in the commit body.
-- [ ] `dotnet test backend`: all PersistenceTests pass, and no `timetrack_test_*` databases are left (`\l`).
-- [ ] No connection string in any tracked file.
+- [x] `dotnet test backend`: all PersistenceTests pass, and no `timetrack_test_*` databases are left (`\l`).
+- [x] No connection string in any tracked file.
 
 ## Commit
 `Step 2: Backend foundation`

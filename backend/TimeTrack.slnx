@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TimeTrack.Api/TimeTrack.Api.csproj" />
+  <Project Path="TimeTrack.Tests/TimeTrack.Tests.csproj" />
+</Solution>
