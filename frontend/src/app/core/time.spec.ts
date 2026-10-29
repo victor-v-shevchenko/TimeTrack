@@ -1,4 +1,4 @@
-import { currentWeek, elapsedSeconds, formatDuration, toRange } from './time';
+import { currentWeek, elapsedSeconds, formatDuration, toRange, toUtcIso } from './time';
 
 describe('toRange', () => {
   it('returns local midnight of the start and the day after the end', () => {
@@ -60,5 +60,11 @@ describe('elapsedSeconds', () => {
 
   it('is never negative', () => {
     expect(elapsedSeconds(startedAt, start - 5000)).toBe(0);
+  });
+});
+
+describe('toUtcIso', () => {
+  it('formats an instant as a UTC ISO string', () => {
+    expect(toUtcIso(new Date(Date.UTC(2026, 0, 5, 23, 30)))).toBe('2026-01-05T23:30:00.000Z');
   });
 });

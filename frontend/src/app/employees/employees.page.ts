@@ -1,6 +1,7 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { ApiService } from '../core/api.service';
 import { Employee } from '../core/models';
 import { problemMessage } from '../core/problem';
@@ -23,6 +24,7 @@ export class EmployeesPage {
   protected readonly saving = signal(false);
   protected readonly formError = signal<string | null>(null);
   protected readonly now = signal(Date.now());
+  private loadRequest?: Subscription;
 
   constructor() {
     const timer = setInterval(() => this.now.set(Date.now()), 1000);
@@ -31,7 +33,9 @@ export class EmployeesPage {
   }
 
   protected load(): void {
-    this.api
+    // Latest wins: a slower, older response must not overwrite a newer one.
+    this.loadRequest?.unsubscribe();
+    this.loadRequest = this.api
       .getEmployees()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -57,10 +61,10 @@ export class EmployeesPage {
       .createEmployee(name)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (employee) => {
-          this.employees.update((list) => [...list, employee]);
+        next: () => {
           this.newName.set('');
           this.saving.set(false);
+          this.load();
         },
         error: (err) => {
           this.formError.set(problemMessage(err));

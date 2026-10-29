@@ -1,4 +1,5 @@
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../core/api.service';
 import { Employee } from '../core/models';
@@ -12,6 +13,7 @@ import { elapsedSeconds, formatDuration } from '../core/time';
 })
 export class EmployeeRow {
   private readonly api = inject(ApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly employee = input.required<Employee>();
   readonly now = input.required<number>();
@@ -41,7 +43,7 @@ export class EmployeeRow {
   private run(request: ReturnType<ApiService['stopTimer']>, onSuccess?: () => void): void {
     this.busy.set(true);
     this.error.set(null);
-    request.subscribe({
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.busy.set(false);
         onSuccess?.();

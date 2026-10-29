@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Employee, Report, TimeEntry } from './models';
+import { toUtcIso } from './time';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -24,7 +25,7 @@ export class ApiService {
   }
 
   getReport(from: Date, to: Date, employeeId?: number): Observable<Report> {
-    let params = new HttpParams().set('from', from.toISOString()).set('to', to.toISOString());
+    let params = new HttpParams().set('from', toUtcIso(from)).set('to', toUtcIso(to));
     if (employeeId !== undefined) {
       params = params.set('employeeId', employeeId);
     }

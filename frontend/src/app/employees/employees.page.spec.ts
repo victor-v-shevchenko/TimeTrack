@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { Subject, of } from 'rxjs';
 import { ApiService } from '../core/api.service';
 import { EmployeesPage } from './employees.page';
 
@@ -26,5 +26,39 @@ describe('EmployeesPage', () => {
     fixture.destroy();
 
     expect(clearSpy).toHaveBeenCalledWith(clockId);
+  });
+
+  it('reloads the list in server order after adding an employee', async () => {
+    const aaron = { id: 2, name: 'Aaron', createdAt: '2026-01-05T08:00:00Z', activeEntry: null };
+    const alice = { id: 1, name: 'Alice', createdAt: '2026-01-05T07:00:00Z', activeEntry: null };
+    const getEmployees = vi.fn().mockReturnValueOnce(of([alice])).mockReturnValue(of([aaron, alice]));
+    TestBed.configureTestingModule({
+      providers: [{ provide: ApiService, useValue: { getEmployees, createEmployee: () => of(aaron) } }],
+    });
+    const fixture = TestBed.createComponent(EmployeesPage);
+    await fixture.whenStable();
+
+    fixture.componentInstance['newName'].set('Aaron');
+    fixture.componentInstance['add']();
+    await fixture.whenStable();
+
+    const names = [...fixture.nativeElement.querySelectorAll('tbody tr')].map((r: HTMLElement) => r.textContent);
+    expect(names[0]).toContain('Aaron');
+    expect(names[1]).toContain('Alice');
+  });
+
+  it('ignores a stale list response that arrives after a newer one', async () => {
+    const first = new Subject<never[]>();
+    const second = new Subject<{ id: number; name: string; createdAt: string; activeEntry: null }[]>();
+    const getEmployees = vi.fn().mockReturnValueOnce(first).mockReturnValueOnce(second);
+    TestBed.configureTestingModule({ providers: [{ provide: ApiService, useValue: { getEmployees } }] });
+    const fixture = TestBed.createComponent(EmployeesPage);
+    fixture.componentInstance['load']();
+
+    second.next([{ id: 1, name: 'Alice', createdAt: '2026-01-05T07:00:00Z', activeEntry: null }]);
+    first.next([]);
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain('Alice');
   });
 });

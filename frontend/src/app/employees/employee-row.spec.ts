@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { Subject, of } from 'rxjs';
 import { ApiService } from '../core/api.service';
 import { Employee } from '../core/models';
 import { EmployeeRow } from './employee-row';
@@ -75,5 +75,24 @@ describe('EmployeeRow', () => {
 
     expect(api.stopTimer).toHaveBeenCalledWith(1);
     expect(fixture.componentInstance.changes).toBe(1);
+  });
+
+  it('ignores a response that arrives after the row was destroyed', async () => {
+    const response = new Subject<object>();
+    api.stopTimer.mockReturnValueOnce(response);
+    const fixture = TestBed.createComponent(Host);
+    fixture.componentInstance.employee.update((e) => ({
+      ...e,
+      activeEntry: { id: 5, description: 'Write docs', startedAt: '2026-01-05T07:58:58Z' },
+    }));
+    await fixture.whenStable();
+
+    [...fixture.nativeElement.querySelectorAll('button')]
+      .find((b: HTMLElement) => b.textContent?.includes('Stop'))
+      .click();
+    fixture.destroy();
+    response.next({});
+
+    expect(fixture.componentInstance.changes).toBe(0);
   });
 });

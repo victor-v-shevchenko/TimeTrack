@@ -36,3 +36,8 @@ export function formatDuration(seconds: number): string {
 export function elapsedSeconds(startedAt: string, now: number): number {
   return Math.max(0, Math.floor((now - Date.parse(startedAt)) / 1000));
 }
+
+/** Instant as the UTC ISO string the API expects. */
+export function toUtcIso(date: Date): string {
+  return date.toISOString();
+}
