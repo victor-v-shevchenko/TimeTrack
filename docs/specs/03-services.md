@@ -121,9 +121,9 @@ Each test class gets its own database, and each test creates employees with uniq
 - Non-UTC input offsets (e.g. +02:00) give the same result as the equivalent UTC values.
 
 ## Acceptance criteria
-- [ ] No `DateTime.Now`, `DateTime.UtcNow` or `DateTimeOffset.UtcNow` in `TimeTrack.Api` (`git grep`).
-- [ ] `dotnet test backend` is green; the race test passes 5 runs in a row.
-- [ ] Services contain no `Microsoft.AspNetCore.Http` references.
+- [x] No `DateTime.Now`, `DateTime.UtcNow` or `DateTimeOffset.UtcNow` in `TimeTrack.Api` (`git grep`).
+- [x] `dotnet test backend` is green; the race test passes 5 runs in a row.
+- [x] Services contain no `Microsoft.AspNetCore.Http` references.
 
 ## Commit
 `Step 3: Employee, timer and report services`

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TimeTrack.Api.Data;
+using TimeTrack.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddKeyPerFile("/run/secrets", optional: true);
@@ -12,6 +13,9 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
     if (sp.GetRequiredService<IHostEnvironment>().IsDevelopment())
         options.EnableSensitiveDataLogging();
 });
+builder.Services.AddScoped<EmployeeService>();
+builder.Services.AddScoped<TimerService>();
+builder.Services.AddScoped<ReportService>();
 
 var app = builder.Build();
 
