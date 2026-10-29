@@ -12,13 +12,13 @@ public class TimerService(AppDbContext db, TimeProvider clock)
 
     public async Task<TimeEntryDto> StartAsync(int employeeId, string? description, CancellationToken ct = default)
     {
+        await EnsureEmployeeExistsAsync(employeeId, ct);
+
         description = description?.Trim();
         if (string.IsNullOrEmpty(description))
             throw new ValidationException("description", "Description is required.");
         if (description.Length > MaxDescriptionLength)
             throw new ValidationException("description", $"Description must be at most {MaxDescriptionLength} characters.");
-
-        await EnsureEmployeeExistsAsync(employeeId, ct);
 
         var alreadyRunning = new ConflictException("Timer is already running for this employee.");
         if (await db.TimeEntries.AnyAsync(x => x.EmployeeId == employeeId && x.StoppedAt == null, ct))

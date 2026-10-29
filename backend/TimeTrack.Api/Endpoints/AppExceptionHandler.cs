@@ -4,7 +4,7 @@ using TimeTrack.Api.Services;
 
 namespace TimeTrack.Api.Endpoints;
 
-public class AppExceptionHandler(IProblemDetailsService problemDetails) : IExceptionHandler
+public class AppExceptionHandler : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
@@ -20,13 +20,12 @@ public class AppExceptionHandler(IProblemDetailsService problemDetails) : IExcep
         problem.Title = app.Title;
         problem.Detail = app.Message;
 
+        // Write directly: IProblemDetailsService declines when Accept excludes JSON, which would
+        // let the exception escape as a bodyless 500.
         httpContext.Response.StatusCode = app.Status;
-        return await problemDetails.TryWriteAsync(new ProblemDetailsContext
-        {
-            HttpContext = httpContext,
-            ProblemDetails = problem,
-            Exception = exception,
-        });
+        await httpContext.Response.WriteAsJsonAsync(
+            problem, problem.GetType(), options: null, contentType: "application/problem+json", cancellationToken);
+        return true;
     }
 
     static string ToCamelCase(string field) =>

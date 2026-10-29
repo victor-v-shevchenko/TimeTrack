@@ -40,6 +40,25 @@ public class TimerTests : IAsyncLifetime
         (await _client.GetFromJsonAsync<EmployeeDto[]>("/api/employees", _ct))!;
 
     [Fact]
+    public async Task Start_for_unknown_employee_is_404_even_with_a_blank_description()
+    {
+        var response = await StartAsync(9999, " ");
+
+        await HttpAssert.ProblemAsync(response, HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Problem_is_returned_when_Accept_excludes_json()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/employees/9999/timer/stop");
+        request.Headers.Accept.ParseAdd("text/html");
+
+        var response = await _client.SendAsync(request, _ct);
+
+        await HttpAssert.ProblemAsync(response, HttpStatusCode.NotFound);
+    }
+
+    [Fact]
     public async Task Start_advance_stop_gives_one_closed_entry_of_1800_seconds()
     {
         var id = await CreateEmployeeAsync();
