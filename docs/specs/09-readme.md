@@ -61,10 +61,10 @@ Do this in a fresh directory on the Windows host, not in the working copy:
 6. Fix any README gap you find in the same commit.
 
 ## Acceptance criteria
-- [ ] All clean-clone steps succeed without steps that aren't documented.
-- [ ] Every command in the README was actually run.
-- [ ] The README links to PLAN.md, `docs/specs/`, `docs/ai-log.md` and `seed/README.md`, and all of them resolve.
-- [ ] No placeholder text is left (`TODO`, `<repo>` replaced by the real URL if it is known).
+- [ ] All clean-clone steps succeed without steps that aren't documented. (Verified from a GitHub clone in the Linux dev container with a remapped port; still to do on the Windows host: PowerShell commands and Reopen in Container.)
+- [ ] Every command in the README was actually run. (Run: clone, cp, compose up/down, seed, report curl, dotnet test, npm test. Not run: dotnet watch, npm start, Swagger UI, PowerShell variants.)
+- [x] The README links to PLAN.md, `docs/specs/`, `docs/ai-log.md` and `seed/README.md`, and all of them resolve.
+- [x] No placeholder text is left (`TODO`, `<repo>` replaced by the real URL if it is known).
 
 ## Commit
 `Step 9: README`

@@ -21,7 +21,7 @@ public class ReportService(AppDbContext db, TimeProvider clock)
 
         var rows = await db.TimeEntries
             .AsNoTracking()
-            .Where(x => x.StartedAt < to && (x.StoppedAt == null || x.StoppedAt > from))
+            .Where(x => x.StartedAt < to && (x.StoppedAt ?? now) > from)
             .Where(x => employeeId == null || x.EmployeeId == employeeId)
             .Select(x => new { x.Id, x.EmployeeId, x.Employee.Name, x.Description, x.StartedAt, x.StoppedAt })
             .ToListAsync(ct);

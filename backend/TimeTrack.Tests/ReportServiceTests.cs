@@ -120,6 +120,17 @@ public class ReportServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Running_entry_is_not_listed_for_a_period_in_the_future()
+    {
+        await AddEmployeeAsync((At(8), null));
+        _factory.Clock.SetUtcNow(At(11));
+
+        var report = await ReportAsync(At(0, 6), At(0, 7));
+
+        Assert.Empty(report.Entries);
+    }
+
+    [Fact]
     public async Task Running_entry_is_clipped_to_period_end()
     {
         await AddEmployeeAsync((At(8), null));

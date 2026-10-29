@@ -10,6 +10,16 @@ Bugs and wrong output produced by AI tools, how they were found, and how they we
 - **How it was found:** failing test | /code-review | manual check
 - **Fix:** <what changed, commit link>
 
+### Report listed running entries for periods in the future
+- **Step / commit:** step 3, `667d316`
+- **Tool / model:** Claude Code (writing model not recorded)
+- **What the AI produced:** the overlap filter treated a running entry (`stopped_at IS NULL`) as open-ended, so it
+  matched any period after its start. A report for next week listed every running entry with 0 s instead of showing
+  the empty state, although the duration was correctly clipped to 0.
+- **How it was found:** manual check in the clean-clone run of the seeded stack (step 9): next-week report returned 2 entries.
+- **Fix:** a running entry ends at `now` for the overlap test (`(StoppedAt ?? now) > from`), with a failing test first,
+  `Step 9: README`.
+
 ### Seed script numbered weekdays before applying LIMIT
 - **Step / commit:** step 7, `Step 7: Seed data`
 - **Tool / model:** Claude Code, Sonnet 5.5
