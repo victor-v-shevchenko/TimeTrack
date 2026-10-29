@@ -1,0 +1,74 @@
+<h2>Report</h2>
+
+<form (ngSubmit)="show()">
+  <label>
+    From
+    <input name="from" type="date" required [ngModel]="from()" (ngModelChange)="from.set($event)" />
+  </label>
+  <label>
+    To
+    <input name="to" type="date" required [ngModel]="to()" (ngModelChange)="to.set($event)" />
+  </label>
+  <label>
+    Employee
+    <select name="employee" [ngModel]="employeeId()" (ngModelChange)="employeeId.set($event)">
+      <option [ngValue]="null">All</option>
+      @for (e of employees(); track e.id) {
+        <option [ngValue]="e.id">{{ e.name }}</option>
+      }
+    </select>
+  </label>
+  <button type="submit" [disabled]="loading()">Show</button>
+</form>
+
+@if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+}
+
+@if (report(); as r) {
+  <h3>Entries</h3>
+  @if (r.entries.length === 0) {
+    <p class="empty">No records for this period</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Employee</th>
+          <th>Task</th>
+          <th>Started</th>
+          <th>Stopped</th>
+          <th class="num">Duration</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (e of r.entries; track e.id) {
+          <tr>
+            <td>{{ e.employeeName }}</td>
+            <td>{{ e.description }}</td>
+            <td>{{ e.startedAt | date: 'short' }}</td>
+            <td>{{ e.stoppedAt ? (e.stoppedAt | date: 'short') : 'running' }}</td>
+            <td class="num">{{ formatDuration(e.durationSeconds) }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  <h3>Totals</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Employee</th>
+        <th class="num">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (t of r.totals; track t.employeeId) {
+        <tr>
+          <td>{{ t.employeeName }}</td>
+          <td class="num">{{ formatDuration(t.totalSeconds) }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

@@ -8,7 +8,7 @@
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
   },
   "forwardPorts": [4200, 5000, 5432],
-  "postCreateCommand": "dotnet restore backend && dotnet tool install -g dotnet-ef && cd frontend && npm ci",
+  "postCreateCommand": "sudo chown vscode:vscode frontend frontend/node_modules && dotnet restore backend && dotnet tool install -g dotnet-ef && cd frontend && npm ci",
   "customizations": { "vscode": { "extensions": [
     "ms-dotnettools.csdevkit", "angular.ng-template",
     "dbaeumer.vscode-eslint", "ckolkman.vscode-postgres"

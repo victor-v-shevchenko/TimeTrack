@@ -1,0 +1,45 @@
+<h2>Employees</h2>
+
+<form (ngSubmit)="add()">
+  <label>
+    Name
+    <input
+      name="name"
+      type="text"
+      required
+      maxlength="100"
+      [ngModel]="newName()"
+      (ngModelChange)="newName.set($event)"
+    />
+  </label>
+  <button type="submit" [disabled]="!newName().trim() || saving()">Add employee</button>
+</form>
+@if (formError()) {
+  <p class="error" role="alert">{{ formError() }}</p>
+}
+
+@if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+}
+
+@if (loading()) {
+  <p class="empty">Loading…</p>
+} @else if (employees().length === 0 && !error()) {
+  <p class="empty">No employees yet. Add the first one above.</p>
+} @else if (employees().length > 0) {
+  <table>
+    <thead>
+      <tr>
+        <th>Employee</th>
+        <th>Task</th>
+        <th class="num">Elapsed</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (e of employees(); track e.id) {
+        <tr app-employee-row [employee]="e" [now]="now()" (changed)="load()"></tr>
+      }
+    </tbody>
+  </table>
+}

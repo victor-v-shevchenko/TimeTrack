@@ -1,0 +1,31 @@
+<td>{{ employee().name }}</td>
+@if (employee().activeEntry; as active) {
+  <td>{{ active.description }}</td>
+  <td class="num elapsed">{{ elapsed() }}</td>
+  <td>
+    <button type="button" class="secondary" [disabled]="busy()" (click)="stop()">Stop</button>
+    @if (error()) {
+      <div class="error" role="alert">{{ error() }}</div>
+    }
+  </td>
+} @else {
+  <td>
+    <input
+      type="text"
+      placeholder="What are you working on?"
+      required
+      maxlength="500"
+      aria-label="Task description"
+      [ngModel]="description()"
+      (ngModelChange)="description.set($event)"
+      (keydown.enter)="start()"
+    />
+  </td>
+  <td class="num">–</td>
+  <td>
+    <button type="button" [disabled]="!canStart()" (click)="start()">Start</button>
+    @if (error()) {
+      <div class="error" role="alert">{{ error() }}</div>
+    }
+  </td>
+}

@@ -103,12 +103,12 @@ returns `errors` values joined, otherwise `detail ?? title`. For status 0 return
   `activeEntry` set → Stop visible and elapsed shown; click calls `stopTimer`.
 
 ## Acceptance criteria
-- [ ] `npm test` is green; `npm run build` has no warnings about budgets or strict templates.
+- [x] `npm test` is green; `npm run build` has no warnings about budgets or strict templates.
 - [ ] Manual (API running in the container): add an employee, start, see the counter tick,
       stop, open the report with today in range, see the entry and total. A range in the
       future shows the empty state.
 - [ ] Opening and closing the Employees page repeatedly doesn't leave intervals running (DevTools check).
-- [ ] No `new Date('YYYY-MM-DD')` anywhere (`git grep`).
+- [x] No `new Date('YYYY-MM-DD')` anywhere (`git grep`).
 
 ## Commit
 `Step 5: Angular frontend`
