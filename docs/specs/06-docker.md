@@ -105,8 +105,8 @@ Add `api` and `web` as in PLAN.md §7. `api` gets only the `db_connection` secre
   message. See the step 1 note about permissions.
 
 ## Acceptance criteria
-- [ ] All the checks above pass on the Windows host with Docker Desktop.
-- [ ] Image sizes are reasonable (api is roughly aspnet base + a few MB; web is nginx + bundle).
+- [x] All the checks above pass on the Windows host with Docker Desktop.
+- [x] Image sizes are reasonable (api is roughly aspnet base + a few MB; web is nginx + bundle).
 
 ## Commit
 `Step 6: Dockerfiles and full compose stack`

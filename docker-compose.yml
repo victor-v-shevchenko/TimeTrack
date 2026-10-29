@@ -8,6 +8,16 @@ services:
     secrets: [db_password]
     volumes: [pgdata:/var/lib/postgresql/data]
     healthcheck: { test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"], interval: 5s, retries: 10 }
+  api:
+    build: ./backend
+    secrets:
+      - source: db_connection
+        target: ConnectionStrings__Default
+    depends_on: { db: { condition: service_healthy } }
+  web:
+    build: ./frontend
+    ports: ["8080:80"]
+    depends_on: [api]
 secrets:
   db_password:   { environment: POSTGRES_PASSWORD }
   db_connection: { environment: DB_CONNECTION_STRING }
