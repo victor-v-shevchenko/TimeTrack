@@ -31,9 +31,13 @@ The script runs after migrations, so the schema already exists. Don't put it in
     ("Code review: report endpoint", "Sprint planning", "Fix timezone bug in report", …).
   - Times are relative to `date_trunc('day', now())` so the current week always has data. Use
     `generate_series` for the days and a small `VALUES` list of (offset, duration, description) templates.
-  - Make one entry cross midnight (22:30–00:45) to show clipping in the report.
+  - Skip planned entries that would end in the future (later today); the running entry covers "now".
+  - Make one entry cross midnight (22:30–00:45) to show clipping in the report. It belongs to
+    "Bob Sample" and falls on the 5th oldest of the 10 weekdays. Number the weekdays after
+    `LIMIT 10` (subquery), not before, or that day may not exist.
   - Leave one running entry (`stopped_at NULL`) for "Alice Example", started 25 minutes ago.
-  - Leave one employee with no entries (shows a 0 total).
+  - Leave "Frank Fictional" with no entries (shows a 0 total).
+  - Do it all in one statement (CTEs), so every insert sees the same "has no entries" snapshot.
 - No `id` values are hard-coded; identity columns generate them.
 - All `timestamptz` values come from `now()` arithmetic, never from string literals without an offset.
 
@@ -52,10 +56,15 @@ For the dev database, use the same command with `-f .devcontainer/docker-compose
 The compose project name may differ; use `docker ps` to find the container if needed.
 
 ## Acceptance criteria
-- [ ] On an empty stack: run the script, then the Employees page shows 6 people and Alice's timer is running.
-- [ ] The report for the current week shows entries and non-zero totals, and one employee with 0.
-- [ ] Running the script a second time changes nothing (row counts identical).
-- [ ] Unit/API tests are unaffected (they use their own databases).
+- [x] On an empty stack: run the script, then the Employees page shows 6 people and Alice's timer is running.
+- [x] The report for the current week shows entries and non-zero totals, and one employee with 0.
+- [x] Running the script a second time changes nothing (row counts identical).
+- [x] Unit/API tests are unaffected (they use their own databases).
+
+Verified on an empty scratch database with the same schema: 6 employees and 127 entries after
+the first run, identical after the second; Alice has the only running entry; Frank has none;
+the other five have about 20 h this week. The employee list and weekly totals were checked
+through SQL and the `/api/employees` response, not in the browser. `dotnet test backend`: 56/56.
 
 ## Commit
 `Step 7: Seed data`
