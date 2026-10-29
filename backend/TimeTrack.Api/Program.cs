@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TimeTrack.Api.Data;
+using TimeTrack.Api.Endpoints;
 using TimeTrack.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +18,10 @@ builder.Services.AddScoped<EmployeeService>();
 builder.Services.AddScoped<TimerService>();
 builder.Services.AddScoped<ReportService>();
 
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<AppExceptionHandler>();
+builder.Services.AddOpenApi();
+
 var app = builder.Build();
 
 if (string.IsNullOrWhiteSpace(app.Configuration.GetConnectionString("Default")))
@@ -26,6 +31,20 @@ if (string.IsNullOrWhiteSpace(app.Configuration.GetConnectionString("Default")))
 
 using (var scope = app.Services.CreateScope())
     scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
+
+app.UseExceptionHandler();
+app.UseStatusCodePages();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "v1"));
+}
+
+app.MapGroup("/api")
+    .MapEmployeeEndpoints()
+    .MapTimerEndpoints()
+    .MapReportEndpoints();
 
 app.Run();
 

@@ -86,10 +86,10 @@ Endpoints contain no logic beyond calling the service.
   server midnight, so the frontend always sends a full UTC timestamp.
 
 ## Acceptance criteria
-- [ ] Every row of the PLAN.md §9 backend table has a passing test.
-- [ ] `/swagger` works in Development and returns 404 in Production.
-- [ ] Every non-2xx response in the tests is `application/problem+json`.
-- [ ] `dotnet test backend` is green.
+- [x] Every row of the PLAN.md §9 backend table has a passing test.
+- [x] `/swagger` works in Development and returns 404 in Production.
+- [x] Every non-2xx response in the tests is `application/problem+json`.
+- [x] `dotnet test backend` is green.
 
 ## Commit
 `Step 4: HTTP endpoints and API tests`
