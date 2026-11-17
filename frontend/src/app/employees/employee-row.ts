@@ -10,6 +10,7 @@ import { elapsedSeconds, formatDuration } from '../core/time';
   selector: 'tr[app-employee-row]',
   imports: [FormsModule],
   templateUrl: './employee-row.html',
+  styleUrl: './employee-row.css',
 })
 export class EmployeeRow {
   private readonly api = inject(ApiService);

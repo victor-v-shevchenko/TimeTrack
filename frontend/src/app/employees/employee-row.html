@@ -1,6 +1,6 @@
 <td>{{ employee().name }}</td>
 @if (employee().activeEntry; as active) {
-  <td>{{ active.description }}</td>
+  <td class="task-cell">{{ active.description }}</td>
   <td class="num elapsed">{{ elapsed() }}</td>
   <td>
     <button type="button" class="secondary" [disabled]="busy()" (click)="stop()">Stop</button>
@@ -9,8 +9,9 @@
     }
   </td>
 } @else {
-  <td>
+  <td class="task-cell">
     <input
+      class="task-input"
       type="text"
       placeholder="What are you working on?"
       required
