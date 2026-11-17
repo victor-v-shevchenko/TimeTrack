@@ -51,13 +51,34 @@ public class TimerService(AppDbContext db, TimeProvider clock)
     {
         await EnsureEmployeeExistsAsync(employeeId, ct);
 
-        var entry = await db.TimeEntries.SingleOrDefaultAsync(x => x.EmployeeId == employeeId && x.StoppedAt == null, ct)
-            ?? throw new ConflictException("No running timer for this employee.");
+        var entry = await FindRunningAsync(employeeId, ct) ?? throw NothingRunning();
 
-        entry.StoppedAt = clock.GetUtcNow();
-        await db.SaveChangesAsync(ct);
+        // Conditional update: of two stops that read the same running entry, only the first closes it;
+        // the second updates no row and gets 409 instead of overwriting stopped_at.
+        DateTimeOffset? now = clock.GetUtcNow();
+        var updated = await db.TimeEntries
+            .Where(x => x.Id == entry.Id && x.StoppedAt == null)
+            .ExecuteUpdateAsync(s => s.SetProperty(x => x.StoppedAt, now), ct);
+        if (updated == 0)
+            throw NothingRunning();
+
+        entry.StoppedAt = now;
         return ToDto(entry);
     }
+
+    public async Task<TimeEntryDto> GetRunningAsync(int employeeId, CancellationToken ct = default)
+    {
+        await EnsureEmployeeExistsAsync(employeeId, ct);
+
+        var entry = await FindRunningAsync(employeeId, ct)
+            ?? throw new NotFoundException("No running timer for this employee.");
+        return ToDto(entry);
+    }
+
+    Task<TimeEntry?> FindRunningAsync(int employeeId, CancellationToken ct) =>
+        db.TimeEntries.AsNoTracking().SingleOrDefaultAsync(x => x.EmployeeId == employeeId && x.StoppedAt == null, ct);
+
+    static ConflictException NothingRunning() => new("No running timer for this employee.");
 
     async Task EnsureEmployeeExistsAsync(int employeeId, CancellationToken ct)
     {

@@ -140,6 +140,42 @@ public class TimerTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Location_of_a_started_timer_resolves_while_it_runs()
+    {
+        var id = await CreateEmployeeAsync();
+        var response = await StartAsync(id, "Writing docs");
+        var started = await HttpAssert.ReadAsync<TimeEntryDto>(response, HttpStatusCode.Created);
+
+        var running = await HttpAssert.ReadAsync<TimeEntryDto>(
+            await _client.GetAsync(response.Headers.Location, _ct), HttpStatusCode.OK);
+        Assert.Equal(started, running);
+
+        await StopAsync(id);
+        await HttpAssert.ProblemAsync(await _client.GetAsync(response.Headers.Location, _ct), HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Parallel_stops_give_one_200_and_nine_409()
+    {
+        var id = await CreateEmployeeAsync();
+        await StartAsync(id);
+        _factory.Clock.Advance(TimeSpan.FromMinutes(15));
+
+        var responses = await Task.WhenAll(Enumerable.Range(0, 10).Select(_ => StopAsync(id)));
+
+        Assert.Equal(1, responses.Count(r => r.StatusCode == HttpStatusCode.OK));
+        var conflicts = responses.Where(r => r.StatusCode == HttpStatusCode.Conflict).ToList();
+        Assert.Equal(9, conflicts.Count);
+        foreach (var conflict in conflicts)
+            await HttpAssert.ProblemAsync(conflict, HttpStatusCode.Conflict);
+        await _factory.ExecuteDbAsync(async db =>
+        {
+            var entry = await db.TimeEntries.SingleAsync(_ct);
+            Assert.Equal(_factory.Clock.GetUtcNow(), entry.StoppedAt);
+        });
+    }
+
+    [Fact]
     public async Task Stop_without_running_timer_is_409()
     {
         var id = await CreateEmployeeAsync();

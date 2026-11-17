@@ -6,6 +6,9 @@ namespace TimeTrack.Api.Services;
 
 public class ReportService(AppDbContext db, TimeProvider clock)
 {
+    /// <summary>Longest report period; it bounds how many rows one request loads into memory.</summary>
+    public const int MaxPeriodDays = 366;
+
     public async Task<ReportDto> GetAsync(
         DateTimeOffset from, DateTimeOffset to, int? employeeId, CancellationToken ct = default)
     {
@@ -13,21 +16,26 @@ public class ReportService(AppDbContext db, TimeProvider clock)
         to = to.ToUniversalTime();
         if (from >= to)
             throw new ValidationException("to", "'to' must be after 'from'.");
+        if (to - from > TimeSpan.FromDays(MaxPeriodDays))
+            throw new ValidationException("to", $"The period must be at most {MaxPeriodDays} days.");
 
         if (employeeId is { } id && !await db.Employees.AnyAsync(x => x.Id == id, ct))
             throw new NotFoundException($"Employee {id} not found.");
 
         var now = clock.GetUtcNow();
 
-        var rows = await db.TimeEntries
+        var overlapping = db.TimeEntries
             .AsNoTracking()
-            .Where(x => x.StartedAt < to && (x.StoppedAt ?? now) > from)
-            .Where(x => employeeId == null || x.EmployeeId == employeeId)
+            .Where(x => x.StartedAt < to && (x.StoppedAt ?? now) > from);
+        if (employeeId is { } filter)
+            overlapping = overlapping.Where(x => x.EmployeeId == filter);
+
+        var rows = await overlapping
+            .OrderBy(x => x.StartedAt).ThenBy(x => x.Id)
             .Select(x => new { x.Id, x.EmployeeId, x.Employee.Name, x.Description, x.StartedAt, x.StoppedAt })
             .ToListAsync(ct);
 
         var entries = rows
-            .OrderBy(x => x.StartedAt).ThenBy(x => x.Id)
             .Select(x =>
             {
                 var start = x.StartedAt > from ? x.StartedAt : from;
@@ -43,9 +51,11 @@ public class ReportService(AppDbContext db, TimeProvider clock)
             .GroupBy(x => x.EmployeeId)
             .ToDictionary(g => g.Key, g => g.Sum(x => x.DurationSeconds));
 
-        var employees = await db.Employees
-            .AsNoTracking()
-            .Where(x => employeeId == null || x.Id == employeeId)
+        var employeeQuery = db.Employees.AsNoTracking();
+        if (employeeId is { } only)
+            employeeQuery = employeeQuery.Where(x => x.Id == only);
+
+        var employees = await employeeQuery
             .OrderBy(x => x.Name)
             .Select(x => new { x.Id, x.Name })
             .ToListAsync(ct);

@@ -19,6 +19,10 @@ public static class TimerEndpoints
             int id, TimerService service, CancellationToken ct) =>
             TypedResults.Ok(await service.StopAsync(id, ct)));
 
+        api.MapGet("/employees/{id:int}/timer", async Task<Ok<TimeEntryDto>> (
+            int id, TimerService service, CancellationToken ct) =>
+            TypedResults.Ok(await service.GetRunningAsync(id, ct)));
+
         return api;
     }
 }

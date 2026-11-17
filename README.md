@@ -65,7 +65,8 @@ Nothing secret is committed. Details in [PLAN.md §6](PLAN.md).
 
 - **One running timer per employee.** A service check and the partial unique index
   `ux_time_entries_one_running`; a unique violation (23505) is mapped to 409, so two concurrent
-  starts cannot both succeed.
+  starts cannot both succeed. Stop closes the entry with a conditional update
+  (`WHERE stopped_at IS NULL`), so of two concurrent stops one gets 200 and the other 409.
 - **UTC everywhere.** Times are `DateTimeOffset` in UTC (`timestamptz`). Only the UI converts to
   local time (`frontend/src/app/core/time.ts`).
 - **Report periods are half-open `[from, to)`.** An entry is included if it overlaps the period and
@@ -82,9 +83,11 @@ Nothing secret is committed. Details in [PLAN.md §6](PLAN.md).
 |--------|------|----------|
 | POST | `/api/employees` | Create; 422 empty name, 409 duplicate |
 | GET  | `/api/employees` | List with the active entry (or `null`) |
+| GET  | `/api/employees/{id}` | One employee with the active entry; 404 unknown |
 | POST | `/api/employees/{id}/timer/start` `{description}` | 201; 409 already running; 404 unknown employee |
 | POST | `/api/employees/{id}/timer/stop` | 200 with the closed entry; 409 nothing running |
-| GET  | `/api/reports?from=&to=&employeeId=` | Entries and total seconds per employee; 422 if `from >= to` |
+| GET  | `/api/employees/{id}/timer` | The running entry; 404 unknown employee or nothing running |
+| GET  | `/api/reports?from=&to=&employeeId=` | Entries and total seconds per employee; 422 if `from >= to` or the period is over 366 days |
 
 Report for the last 7 days (bash):
 
@@ -143,6 +146,10 @@ is not in the saved history, so it is not included.
 | Wrong step 2 spec/tooling assumptions (KeyPerFile package, `global.json`) | build and test failures | Spec corrected |
 | Dev container created `frontend/` and `node_modules` root-owned | `npm install` failure | `chown` in `postCreateCommand` |
 | Swagger UI returned 404 in the dev container (no Development environment) | clean-clone check | `ASPNETCORE_ENVIRONMENT` in `containerEnv` |
+| `Location` headers pointed to paths without a GET | external code review | `GET /api/employees/{id}` and `GET /api/employees/{id}/timer` |
+| Two concurrent stops both succeeded; the second overwrote the stop time | external code review | Conditional `UPDATE … WHERE stopped_at IS NULL`, 409 for the loser |
+| Report period unbounded, rows sorted in memory | external code review | 366-day limit (422), `ORDER BY` in SQL |
+| Report page could show an older response over a newer one | external code review | Latest-wins request in `ReportPage.show()` |
 
 Full log: [docs/ai-log.md](docs/ai-log.md). Seed data: [seed/README.md](seed/README.md).
 

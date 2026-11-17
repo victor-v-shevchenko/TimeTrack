@@ -80,8 +80,10 @@ the timer and an empty report.
 |--------|------|----------|
 | POST | `/api/employees` | Create; 422 empty name, 409 duplicate |
 | GET  | `/api/employees` | List with active entry (or `null`) |
+| GET  | `/api/employees/{id}` | One employee with active entry; 404 unknown |
 | POST | `/api/employees/{id}/timer/start` `{description}` | 201; 409 already running; 404 unknown employee |
-| POST | `/api/employees/{id}/timer/stop` | 200 with closed entry; 409 nothing running |
+| POST | `/api/employees/{id}/timer/stop` | 200 with closed entry; 409 nothing running (also for the loser of two concurrent stops) |
+| GET  | `/api/employees/{id}/timer` | The running entry; 404 unknown employee or nothing running |
 | GET  | `/api/reports?from=&to=&employeeId=` | Entries + total seconds per employee |
 
 Errors are returned as RFC 7807 `ProblemDetails`. Swagger UI is enabled in Development.
@@ -91,7 +93,8 @@ Errors are returned as RFC 7807 `ProblemDetails`. Swagger UI is enabled in Devel
 - A running entry counts up to `TimeProvider.GetUtcNow()`, also clipped.
 - The UI sends `to` as exclusive: the day after the selected end date at 00:00 local time, converted to UTC.
 - Empty period → 200 with `entries: []` and `totalSeconds: 0` for every employee (or the filtered one).
-- `from >= to` → 422.
+- `from >= to` → 422; a period longer than 366 days → 422 (bounds the rows loaded per request).
+- Entries are ordered by `started_at`, then `id`, in SQL.
 
 ## 5. Frontend (Angular)
 
@@ -253,11 +256,12 @@ No separate test connection string and no credentials in test code.
 | Start → advance 30 min → stop gives one closed entry of 1800 s | TimerTests |
 | **Restart timer**: start → stop → start → stop gives two entries, first unchanged, total is the sum | TimerTests |
 | Double start → 409, only one running entry (including a parallel race) | TimerTests |
-| Stop with nothing running → 409 | TimerTests |
+| Stop with nothing running → 409; parallel stops → one 200, the rest 409 | TimerTests |
+| `Location` of a created employee and of a started timer resolves | EmployeeTests, TimerTests |
 | **Empty report**: no entries / employee without entries → 200, `[]`, total 0 | ReportTests |
 | Entry crossing the period boundary is clipped | ReportTests |
 | Running entry counted up to now | ReportTests |
-| `from >= to` → 422 | ReportTests |
+| `from >= to` → 422; period over 366 days → 422 | ReportTests |
 | **Persistence**: write data, dispose factory, new factory on same DB, data (incl. running timer) still there | PersistenceTests |
 | Missing connection string → startup fails with a clear error | PersistenceTests |
 

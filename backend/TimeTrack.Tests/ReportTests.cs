@@ -110,6 +110,38 @@ public class ReportTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Period_longer_than_366_days_is_422()
+    {
+        var response = await GetAsync(At(0), At(0).AddDays(366).AddSeconds(1));
+
+        var problem = await HttpAssert.ProblemAsync(response, HttpStatusCode.UnprocessableEntity);
+        Assert.Equal(1, problem.GetProperty("errors").GetProperty("to").GetArrayLength());
+    }
+
+    [Fact]
+    public async Task Period_of_exactly_366_days_is_allowed()
+    {
+        await AddEmployeeAsync((At(8), At(9)));
+
+        var report = await HttpAssert.ReadAsync<ReportDto>(
+            await GetAsync(At(0), At(0).AddDays(366)), HttpStatusCode.OK);
+
+        Assert.Equal(3600, Assert.Single(report.Totals).TotalSeconds);
+    }
+
+    [Fact]
+    public async Task Entries_are_ordered_by_start_time()
+    {
+        // Inserted out of order, so the order comes from the query, not from the IDs
+        await AddEmployeeAsync((At(14), At(15)), (At(8), At(9)));
+        await AddEmployeeAsync((At(10), At(11)));
+
+        var report = await HttpAssert.ReadAsync<ReportDto>(await GetAsync(At(0), At(0, 6)), HttpStatusCode.OK);
+
+        Assert.Equal(new[] { At(8), At(10), At(14) }, report.Entries.Select(x => x.StartedAt).ToArray());
+    }
+
+    [Fact]
     public async Task Missing_from_is_400()
     {
         var response = await _client.GetAsync($"/api/reports?to={Iso(At(0, 6))}", _ct);

@@ -85,3 +85,30 @@ Bugs and wrong output produced by AI tools, how they were found, and how they we
   criterion was only checked by a test that sets the environment explicitly.
 - **How it was found:** clean-clone check in a fresh Dev Container.
 - **Fix:** `containerEnv` `ASPNETCORE_ENVIRONMENT=Development` in `devcontainer.json`.
+
+### `Location` headers pointed to paths without a GET
+- **Step / commit:** step 4 (endpoints), fixed in step 10
+- **Tool / model:** Claude Code (writing model not recorded)
+- **What the AI produced:** `POST /api/employees` returned `Location: /api/employees/{id}` and timer start returned
+  `/api/employees/{id}/timer`, but neither path was mapped, so following them gave 404. A test asserted the header
+  value without following it.
+- **How it was found:** external code review (Claude, Opus 5.5) after step 9.
+- **Fix:** `GET /api/employees/{id}` and `GET /api/employees/{id}/timer`, with tests that follow the header, `Step 10: Review fixes`.
+
+### Concurrent stops both succeeded
+- **Step / commit:** step 3 (services), fixed in step 10
+- **Tool / model:** Claude Code (writing model not recorded)
+- **What the AI produced:** `StopAsync` loaded the running entry and saved `stopped_at` through change tracking. Two
+  stops that read the same entry both returned 200, and the second overwrote the first stop time. The start path was
+  protected by the partial unique index; stop had no equivalent guard.
+- **How it was found:** external code review (Claude, Opus 5.5) after step 9.
+- **Fix:** one conditional `UPDATE … WHERE id = @id AND stopped_at IS NULL` (`ExecuteUpdateAsync`); 0 rows → 409.
+  Parallel-stop tests at HTTP and service level, `Step 10: Review fixes`.
+
+### Minor: unbounded report period, sorting in memory, report responses out of order
+- **Step / commit:** steps 3 and 5, fixed in step 10
+- **Tool / model:** Claude Code (writing model not recorded)
+- **What the AI produced:** `GET /api/reports` accepted any period and sorted rows after loading them all;
+  `ReportPage.show()` didn't cancel a previous request, unlike `EmployeesPage.load()`.
+- **How it was found:** external code review (Claude, Opus 5.5) after step 9.
+- **Fix:** 366-day limit (422), `ORDER BY started_at, id` in SQL, latest-wins request in the report page, `Step 10: Review fixes`.

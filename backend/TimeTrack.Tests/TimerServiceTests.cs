@@ -122,6 +122,31 @@ public class TimerServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Parallel_stops_let_exactly_one_win()
+    {
+        var id = await CreateEmployeeAsync();
+        await StartAsync(id);
+
+        var results = await Task.WhenAll(Enumerable.Range(0, 10).Select(async _ =>
+        {
+            await Task.Yield();
+            try
+            {
+                await StopAsync(id);
+                return (Exception?)null;
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+        }));
+
+        Assert.Equal(1, results.Count(x => x is null));
+        Assert.Equal(9, results.Count(x => x is ConflictException));
+        Assert.Equal(0, await CountRunningAsync(id));
+    }
+
+    [Fact]
     public async Task Stop_without_running_timer_is_a_conflict()
     {
         var id = await CreateEmployeeAsync();
