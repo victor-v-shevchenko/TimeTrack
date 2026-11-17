@@ -1,4 +1,4 @@
-<td>{{ employee().name }}</td>
+<td class="name-cell">{{ employee().name }}</td>
 @if (employee().activeEntry; as active) {
   <td class="task-cell">{{ active.description }}</td>
   <td class="num elapsed">{{ elapsed() }}</td>

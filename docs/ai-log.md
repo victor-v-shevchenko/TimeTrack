@@ -112,3 +112,11 @@ Bugs and wrong output produced by AI tools, how they were found, and how they we
   `ReportPage.show()` didn't cancel a previous request, unlike `EmployeesPage.load()`.
 - **How it was found:** external code review (Claude, Opus 5.5) after step 9.
 - **Fix:** 366-day limit (422), `ORDER BY started_at, id` in SQL, latest-wins request in the report page, `Step 10: Review fixes`.
+
+### Employee names wrapped after widening the task input
+- **Step / commit:** `94be8f6` (employees page layout), fixed in the next commit
+- **Tool / model:** Claude Code (Opus 5.5)
+- **What the AI produced:** the task cell got `width: 100%` so the input would fill it, which squeezed the Employee
+  column to its minimum; two-word names like "Alice Example" wrapped onto two lines.
+- **How it was found:** manual check while taking the README screenshot against the seeded compose stack.
+- **Fix:** `white-space: nowrap` on the name cell.

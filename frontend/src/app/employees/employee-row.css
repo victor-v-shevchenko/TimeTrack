@@ -5,3 +5,7 @@
 .task-input {
   width: 100%;
 }
+
+.name-cell {
+  white-space: nowrap;
+}
