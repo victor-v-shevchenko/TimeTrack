@@ -1,6 +1,6 @@
 # TimeTrack
 
-[![CI](https://github.com/victor-v-shevchenko/TimeTrack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/victor-v-shevchenko/TimeTrack/actions/workflows/ci.yml?query=branch%3Amain)
+[![CI](https://github.com/victor-v-shevchenko/TimeTrack/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/victor-v-shevchenko/TimeTrack/actions/workflows/ci.yml?query=branch%3Amaster)
 
 A small web app for tracking employees' working time. Add employees, start and stop a timer with a
 task description, and see the records and total time per employee for a selected period. Data lives
@@ -114,7 +114,7 @@ report empty state and the start/stop row.
 
 GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the backend tests
 against a PostgreSQL 17 service container, the frontend tests and production build, and builds
-both Docker images on every push to `main` and every pull request.
+both Docker images on every push to `master` and every pull request.
 
 ## AI tools
 
