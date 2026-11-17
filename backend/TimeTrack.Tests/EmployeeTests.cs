@@ -41,6 +41,24 @@ public class EmployeeTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Location_of_a_created_employee_resolves()
+    {
+        var response = await _client.PostAsJsonAsync("/api/employees", new { name = "Bob Example" }, _ct);
+        var created = await HttpAssert.ReadAsync<EmployeeDto>(response, HttpStatusCode.Created);
+
+        var fetched = await HttpAssert.ReadAsync<EmployeeDto>(
+            await _client.GetAsync(response.Headers.Location, _ct), HttpStatusCode.OK);
+
+        Assert.Equal(created, fetched);
+    }
+
+    [Fact]
+    public async Task Get_unknown_employee_is_404()
+    {
+        await HttpAssert.ProblemAsync(await _client.GetAsync("/api/employees/9999", _ct), HttpStatusCode.NotFound);
+    }
+
+    [Fact]
     public async Task Blank_name_is_422_with_field_error()
     {
         var response = await _client.PostAsJsonAsync("/api/employees", new { name = "  " }, _ct);

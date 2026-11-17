@@ -1,0 +1,11 @@
+.task-cell {
+  width: 100%;
+}
+
+.task-input {
+  width: 100%;
+}
+
+.name-cell {
+  white-space: nowrap;
+}

@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { ApiService } from '../core/api.service';
 import { Employee, Report } from '../core/models';
 import { problemMessage } from '../core/problem';
@@ -26,6 +27,7 @@ export class ReportPage {
   protected readonly report = signal<Report | null>(null);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
+  private reportRequest?: Subscription;
 
   constructor() {
     this.api
@@ -51,7 +53,9 @@ export class ReportPage {
     const { from, to } = toRange(this.from(), this.to());
     this.loading.set(true);
     this.error.set(null);
-    this.api
+    // Latest wins: a slower, older response must not overwrite a newer one.
+    this.reportRequest?.unsubscribe();
+    this.reportRequest = this.api
       .getReport(from, to, this.employeeId() ?? undefined)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

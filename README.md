@@ -1,5 +1,7 @@
 # TimeTrack
 
+[![CI](https://github.com/victor-v-shevchenko/TimeTrack/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/victor-v-shevchenko/TimeTrack/actions/workflows/ci.yml?query=branch%3Amaster)
+
 A small web app for tracking employees' working time. Add employees, start and stop a timer with a
 task description, and see the records and total time per employee for a selected period. Data lives
 in PostgreSQL and survives restarts. There is no authentication and all data is fictional.
@@ -65,7 +67,8 @@ Nothing secret is committed. Details in [PLAN.md §6](PLAN.md).
 
 - **One running timer per employee.** A service check and the partial unique index
   `ux_time_entries_one_running`; a unique violation (23505) is mapped to 409, so two concurrent
-  starts cannot both succeed.
+  starts cannot both succeed. Stop closes the entry with a conditional update
+  (`WHERE stopped_at IS NULL`), so of two concurrent stops one gets 200 and the other 409.
 - **UTC everywhere.** Times are `DateTimeOffset` in UTC (`timestamptz`). Only the UI converts to
   local time (`frontend/src/app/core/time.ts`).
 - **Report periods are half-open `[from, to)`.** An entry is included if it overlaps the period and
@@ -82,9 +85,11 @@ Nothing secret is committed. Details in [PLAN.md §6](PLAN.md).
 |--------|------|----------|
 | POST | `/api/employees` | Create; 422 empty name, 409 duplicate |
 | GET  | `/api/employees` | List with the active entry (or `null`) |
+| GET  | `/api/employees/{id}` | One employee with the active entry; 404 unknown |
 | POST | `/api/employees/{id}/timer/start` `{description}` | 201; 409 already running; 404 unknown employee |
 | POST | `/api/employees/{id}/timer/stop` | 200 with the closed entry; 409 nothing running |
-| GET  | `/api/reports?from=&to=&employeeId=` | Entries and total seconds per employee; 422 if `from >= to` |
+| GET  | `/api/employees/{id}/timer` | The running entry; 404 unknown employee or nothing running |
+| GET  | `/api/reports?from=&to=&employeeId=` | Entries and total seconds per employee; 422 if `from >= to` or the period is over 366 days |
 
 Report for the last 7 days (bash):
 
@@ -102,10 +107,14 @@ migrations and drops it afterwards. Time is a `FakeTimeProvider`.
 | Empty report | `ReportTests.Empty_report_lists_every_employee_with_zero`, `Empty_report_filtered_by_employee_without_entries_has_one_zero_total` |
 | Data persistence | `PersistenceTests.Data_survives_restart` (includes a running timer) |
 
-Also covered: validation and duplicate names, double start (including a parallel race), stop with
-nothing running, period clipping, running entries, `from >= to`, fail-fast on a missing connection
-string. Frontend tests (Vitest) cover `ApiService`, the UTC date conversion, error messages, the
+Also covered: validation and duplicate names, double start and double stop (including parallel
+races), stop with nothing running, `Location` headers that resolve, period clipping, running
+entries, `from >= to` and the 366-day limit, fail-fast on a missing connection string. Frontend tests (Vitest) cover `ApiService`, the UTC date conversion, error messages, the
 report empty state and the start/stop row.
+
+GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the backend tests
+against a PostgreSQL 17 service container, the frontend tests and production build, and builds
+both Docker images on every push to `master` and every pull request.
 
 ## AI tools
 
@@ -143,10 +152,18 @@ is not in the saved history, so it is not included.
 | Wrong step 2 spec/tooling assumptions (KeyPerFile package, `global.json`) | build and test failures | Spec corrected |
 | Dev container created `frontend/` and `node_modules` root-owned | `npm install` failure | `chown` in `postCreateCommand` |
 | Swagger UI returned 404 in the dev container (no Development environment) | clean-clone check | `ASPNETCORE_ENVIRONMENT` in `containerEnv` |
+| `Location` headers pointed to paths without a GET | external code review | `GET /api/employees/{id}` and `GET /api/employees/{id}/timer` |
+| Two concurrent stops both succeeded; the second overwrote the stop time | external code review | Conditional `UPDATE … WHERE stopped_at IS NULL`, 409 for the loser |
+| Report period unbounded, rows sorted in memory | external code review | 366-day limit (422), `ORDER BY` in SQL |
+| Report page could show an older response over a newer one | external code review | Latest-wins request in `ReportPage.show()` |
 
 Full log: [docs/ai-log.md](docs/ai-log.md). Seed data: [seed/README.md](seed/README.md).
 
 ## Possible improvements
 
 Editing and deleting entries, CSV export, authentication, pagination, per-user timezone settings,
-an external secret store, splitting the dev container per frontend/backend, a CI pipeline.
+an external secret store, splitting the dev container per frontend/backend.
+
+## License
+
+[MIT](LICENSE)

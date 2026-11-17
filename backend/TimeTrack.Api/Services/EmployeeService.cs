@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using TimeTrack.Api.Contracts;
@@ -44,11 +45,21 @@ public class EmployeeService(AppDbContext db, TimeProvider clock)
         await db.Employees
             .AsNoTracking()
             .OrderBy(e => e.Name)
-            .Select(e => new EmployeeDto(
-                e.Id, e.Name, e.CreatedAt,
-                e.Entries
-                    .Where(t => t.StoppedAt == null)
-                    .Select(t => new ActiveEntryDto(t.Id, t.Description, t.StartedAt))
-                    .FirstOrDefault()))
+            .Select(ToDto)
             .ToListAsync(ct);
+
+    public async Task<EmployeeDto> GetAsync(int id, CancellationToken ct = default) =>
+        await db.Employees
+            .AsNoTracking()
+            .Where(e => e.Id == id)
+            .Select(ToDto)
+            .SingleOrDefaultAsync(ct)
+        ?? throw new NotFoundException($"Employee {id} not found.");
+
+    static readonly Expression<Func<Employee, EmployeeDto>> ToDto = e => new EmployeeDto(
+        e.Id, e.Name, e.CreatedAt,
+        e.Entries
+            .Where(t => t.StoppedAt == null)
+            .Select(t => new ActiveEntryDto(t.Id, t.Description, t.StartedAt))
+            .FirstOrDefault());
 }

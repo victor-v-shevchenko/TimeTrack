@@ -19,6 +19,10 @@ public static class EmployeeEndpoints
             EmployeeService service, CancellationToken ct) =>
             TypedResults.Ok(await service.ListAsync(ct)));
 
+        api.MapGet("/employees/{id:int}", async Task<Ok<EmployeeDto>> (
+            int id, EmployeeService service, CancellationToken ct) =>
+            TypedResults.Ok(await service.GetAsync(id, ct)));
+
         return api;
     }
 }
