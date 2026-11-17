@@ -1,5 +1,7 @@
 # TimeTrack
 
+[![CI](https://github.com/victor-v-shevchenko/TimeTrack/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/victor-v-shevchenko/TimeTrack/actions/workflows/ci.yml?query=branch%3Amain)
+
 A small web app for tracking employees' working time. Add employees, start and stop a timer with a
 task description, and see the records and total time per employee for a selected period. Data lives
 in PostgreSQL and survives restarts. There is no authentication and all data is fictional.
@@ -105,10 +107,14 @@ migrations and drops it afterwards. Time is a `FakeTimeProvider`.
 | Empty report | `ReportTests.Empty_report_lists_every_employee_with_zero`, `Empty_report_filtered_by_employee_without_entries_has_one_zero_total` |
 | Data persistence | `PersistenceTests.Data_survives_restart` (includes a running timer) |
 
-Also covered: validation and duplicate names, double start (including a parallel race), stop with
-nothing running, period clipping, running entries, `from >= to`, fail-fast on a missing connection
-string. Frontend tests (Vitest) cover `ApiService`, the UTC date conversion, error messages, the
+Also covered: validation and duplicate names, double start and double stop (including parallel
+races), stop with nothing running, `Location` headers that resolve, period clipping, running
+entries, `from >= to` and the 366-day limit, fail-fast on a missing connection string. Frontend tests (Vitest) cover `ApiService`, the UTC date conversion, error messages, the
 report empty state and the start/stop row.
+
+GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the backend tests
+against a PostgreSQL 17 service container, the frontend tests and production build, and builds
+both Docker images on every push to `main` and every pull request.
 
 ## AI tools
 
@@ -156,4 +162,4 @@ Full log: [docs/ai-log.md](docs/ai-log.md). Seed data: [seed/README.md](seed/REA
 ## Possible improvements
 
 Editing and deleting entries, CSV export, authentication, pagination, per-user timezone settings,
-an external secret store, splitting the dev container per frontend/backend, a CI pipeline.
+an external secret store, splitting the dev container per frontend/backend.
