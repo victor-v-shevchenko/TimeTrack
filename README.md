@@ -163,3 +163,7 @@ Full log: [docs/ai-log.md](docs/ai-log.md). Seed data: [seed/README.md](seed/REA
 
 Editing and deleting entries, CSV export, authentication, pagination, per-user timezone settings,
 an external secret store, splitting the dev container per frontend/backend.
+
+## License
+
+[MIT](LICENSE)
